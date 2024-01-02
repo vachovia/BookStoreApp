@@ -1,0 +1,186 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using BookStoreApp.API.Data;
+using AutoMapper;
+using BookStoreApp.API.Models.Book;
+using BookStoreApp.API.Models.Author;
+using AutoMapper.QueryableExtensions;
+using BookStoreApp.API.Static;
+
+namespace BookStoreApp.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BooksController : ControllerBase
+    {
+        private readonly IMapper _mapper;
+        private readonly BookStoreDbContext _context;
+        private readonly ILogger<BooksController> _logger;
+
+        public BooksController(BookStoreDbContext context, IMapper mapper, ILogger<BooksController> logger)
+        {
+            _mapper = mapper;
+            _logger = logger;
+            _context = context;
+        }
+        
+        [HttpGet] // GET: api/Books
+        public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks()
+        {
+            _logger.LogInformation($"Request to {nameof(GetBooks)}");
+
+            try
+            {
+                //***** Here we have Select * From Books *******
+                //var books = await _context.Books.ToListAsync();
+                //var bookDtos = _mapper.Map<List<BookDto>>(books);
+
+                //**** Here EF is efficient and Selects few Book ****
+                //**** columns and Author.FirstName with LastName ***
+                var bookDtos = await _context.Books
+                    .Include(b => b.Author)
+                    .ProjectTo<BookDto>(_mapper.ConfigurationProvider)
+                    .ToListAsync();
+
+                return Ok(bookDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(GetBooks)}");
+
+                return StatusCode(500, Messages.Error500Message);
+            }            
+        }
+        
+        [HttpGet("{id}")] // GET: api/Books/5
+        public async Task<ActionResult<BookDetailsDto>> GetBook(int id)
+        {
+            try
+            {
+                var bookDto = await _context.Books
+                .Include(b => b.Author)
+                .ProjectTo<BookDetailsDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+                if (bookDto == null)
+                {
+                    return NotFound();
+                }
+
+                return bookDto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(GetBook)}");
+
+                return StatusCode(500, Messages.Error500Message);
+            }
+        }
+                
+        [HttpPut("{id}")] // PUT: api/Books/5
+        public async Task<IActionResult> PutBook(int id, BookUpdateDto bookDto)
+        {
+            try
+            {
+                if (id != bookDto.Id)
+                {
+                    return BadRequest();
+                }
+
+                var book = await _context.Books.FindAsync(id);
+
+                if (book == null)
+                {
+                    return NotFound();
+                }
+
+                _mapper.Map(bookDto, book);
+
+                _context.Entry(book).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (! await BookExistsAsync(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(PutBook)}");
+
+                return StatusCode(500, Messages.Error500Message);
+            }            
+        }
+
+        
+        [HttpPost] // POST: api/Books
+        public async Task<ActionResult<Book>> PostBook(BookCreateDto bookDto)
+        {
+            try
+            {
+                var book = _mapper.Map<Book>(bookDto);
+
+                _context.Books.Add(book);
+
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction("GetBook", new { id = book.Id }, book);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(PostBook)}");
+
+                return StatusCode(500, Messages.Error500Message);
+            }            
+        }
+
+        
+        [HttpDelete("{id}")] // DELETE: api/Books/5
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            try
+            {
+                var book = await _context.Books.FindAsync(id);
+
+                if (book == null)
+                {
+                    return NotFound();
+                }
+
+                _context.Books.Remove(book);
+
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(DeleteBook)}");
+
+                return StatusCode(500, Messages.Error500Message);
+            }
+        }
+
+        private async Task<bool> BookExistsAsync(int id)
+        {
+            return await _context.Books.AnyAsync(e => e.Id == id);
+        }
+    }
+}
