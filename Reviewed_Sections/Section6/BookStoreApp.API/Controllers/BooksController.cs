@@ -1,17 +1,21 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using BookStoreApp.API.Data;
-using BookStoreApp.API.Models.Book;
-using BookStoreApp.API.Static;
-using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using BookStoreApp.API.Data;
+using AutoMapper;
+using BookStoreApp.API.Models.Book;
+using BookStoreApp.API.Models.Author;
+using AutoMapper.QueryableExtensions;
+using BookStoreApp.API.Static;
 
 namespace BookStoreApp.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class BooksController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -79,7 +83,6 @@ namespace BookStoreApp.API.Controllers
         }
                 
         [HttpPut("{id}")] // PUT: api/Books/5
-        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> PutBook(int id, BookUpdateDto bookDto)
         {
             try
@@ -128,7 +131,6 @@ namespace BookStoreApp.API.Controllers
 
         
         [HttpPost] // POST: api/Books
-        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<Book>> PostBook(BookCreateDto bookDto)
         {
             try
@@ -151,7 +153,6 @@ namespace BookStoreApp.API.Controllers
 
         
         [HttpDelete("{id}")] // DELETE: api/Books/5
-        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             try
