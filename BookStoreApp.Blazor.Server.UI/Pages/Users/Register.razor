@@ -1,0 +1,89 @@
+﻿@page "/users/register"
+@inject IClient _httpClient
+@inject NavigationManager _navigationManager
+
+<div class="container col-12 offset-md-5 pb-2">
+    <h3>Register New Account</h3>
+</div>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger">
+        <p>@message</p>
+    </div>
+}
+
+<div class="container">
+    <EditForm Model="RegistrationModel" OnValidSubmit="HandleRegistration">
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <InputText id="email" class="form-control" @bind-Value="RegistrationModel.Email" />
+            <ValidationMessage For="@(() => RegistrationModel.Email)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <InputText id="firstName" class="form-control" @bind-Value="RegistrationModel.FirstName" />
+            <ValidationMessage For="@(() => RegistrationModel.FirstName)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <InputText id="lastName" class="form-control" @bind-Value="RegistrationModel.LastName" />
+            <ValidationMessage For="@(() => RegistrationModel.LastName)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="password">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="RegistrationModel.Password" />
+            <ValidationMessage For="@(() => RegistrationModel.Password)" />
+        </div>
+        <br/>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary btn-block">Register</button>
+        </div>
+        
+    </EditForm>
+</div>
+
+@code {
+    string message = string.Empty;
+
+    UserDto RegistrationModel = new UserDto
+    {
+        Role = "User"
+    };
+
+    private async Task HandleRegistration()
+    {
+        try
+        {
+            await _httpClient.RegisterAsync(RegistrationModel);
+
+            NavigateToLogin();
+        }
+        catch (ApiException ex)
+        {
+            // If we hover over RegisterAsync we see ApiException
+            // message = ex.Message; NSwag doesn't expect 202 Status Code
+            if (ex.StatusCode >= 200 && ex.StatusCode < 300)
+            {
+                NavigateToLogin();
+            }
+
+            message = ex.Response;
+        }
+        catch(Exception ex)
+        {
+            message = ex.Message;
+        }        
+    }
+
+    private void NavigateToLogin()
+    {
+        _navigationManager.NavigateTo("/users/login");
+    }
+}
