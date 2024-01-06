@@ -35,5 +35,10 @@ namespace BookStoreApp.Blazor.Server.UI.Services.Authentication
         {
             await ((ApiAuthenticationStateProvider)_authenticationStateProvider).LoggedOut();
         }
+
+        public async Task RegisterAsync(UserDto registrationModel)
+        {
+            await _httpClient.RegisterAsync(registrationModel);
+        }
     }
 }
