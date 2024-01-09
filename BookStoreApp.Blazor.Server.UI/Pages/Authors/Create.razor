@@ -1,0 +1,82 @@
+﻿@page "/authors/create"
+@inject IAuthorService _authService;
+@inject NavigationManager _navigationManager
+@attribute [Authorize(Roles = Roles.Administrator)]
+
+<h3>Create New Author</h3><br/>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger">
+        <p>@message</p>
+    </div>
+}
+
+<div class="container">
+    <EditForm Model="AuthorModel" OnValidSubmit="HandleCreateAuthor">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <InputText id="firstName" class="form-control" @bind-Value="AuthorModel.FirstName" />
+            <ValidationMessage For="@(() => AuthorModel.FirstName)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <InputText id="lastName" class="form-control" @bind-Value="AuthorModel.LastName" />
+            <ValidationMessage For="@(() => AuthorModel.LastName)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="bio">Bio</label>
+            <InputTextArea id="bio" class="form-control" @bind-Value="AuthorModel.Bio" />
+            <ValidationMessage For="@(() => AuthorModel.Bio)" />
+        </div>
+        <br />
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">
+                <span class="oi oi-script"></span>&nbsp;Create Author
+            </button>
+            <button type="button" class="btn btn-secondary" @onclick="BackToList">
+                <span class="oi oi-arrow-circle-left"></span>&nbsp;Back To List
+            </button>
+        </div>
+
+    </EditForm>
+</div>
+
+@code {
+    string message = string.Empty;
+
+    AuthorCreateDto AuthorModel = new AuthorCreateDto();
+
+    private async Task HandleCreateAuthor()
+    {
+        try
+        {
+            var response = await _authService.CreateAuthor(AuthorModel);
+
+            if (response.Success)
+            {
+                BackToList();
+            }
+
+            message = "Something Went Wrong, Please Try Again.";
+        }
+        catch (ApiException ex)
+        {
+            message = ex.Response;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+    }
+
+    private void BackToList()
+    {
+        _navigationManager.NavigateTo("/authors/");
+    }
+}
