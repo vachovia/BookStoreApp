@@ -8,7 +8,6 @@ namespace BookStoreApp.Blazor.Server.UI.Services
     {
         private readonly IMapper _mapper;
         private readonly IClient _client;
-        private readonly ILocalStorageService _localStorage;
 
         public AuthorService(IClient client, ILocalStorageService localStorage, IMapper mapper) : base(client, localStorage)
         {
