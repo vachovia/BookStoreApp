@@ -22,6 +22,7 @@ builder.Services.AddHttpClient<IClient, Client>(client =>
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(
     a => a.GetRequiredService<ApiAuthenticationStateProvider>()

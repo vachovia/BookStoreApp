@@ -1,0 +1,110 @@
+﻿@page "/books/details/{id:int}"
+@inject IBookService _bookService;
+@inject NavigationManager _navigationManager
+
+<h3>Book Details</h3>
+<br />
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger">
+        <p>@message</p>
+    </div>
+}
+
+<div class="container">
+    <EditForm Model="BookModel">
+        <fieldset disabled="disabled">
+            <div class="form-group">
+                <label>Book Cover Photo</label>
+                <div>
+                    <img src="@BookModel.Image" width="100" height="100" class="img-thumbnail" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="title">Title</label>
+                <InputText id="title" class="form-control" @bind-Value="BookModel.Title" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="author">Author</label>
+                <InputText id="author" class="form-control" @bind-Value="BookModel.AuthorName" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="isbn">ISBN</label>
+                <InputText id="isbn" class="form-control" @bind-Value="BookModel.Isbn" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="price">Price</label>
+                <InputNumber id="price" class="form-control" @bind-Value="BookModel.Price" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="year">Year</label>
+                <InputNumber id="year" class="form-control" @bind-Value="BookModel.Year" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="summary">Summary</label>
+                <InputTextArea id="sumamry" class="form-control" @bind-Value="BookModel.Summary" />
+            </div>
+            <br />
+        </fieldset>
+
+        <div class="text-end">
+            @if (authState.User.IsInRole(Roles.Administrator))
+            {
+                <button type="button" class="btn btn-warning" @onclick="GoToEdit">
+                    <span class="oi oi-pencil"></span>&nbsp;Update Book
+                </button>
+            }            
+            <button type="button" class="btn btn-secondary ms-2" @onclick="BackToList">
+                <span class="oi oi-arrow-circle-left"></span>&nbsp;Back To List
+            </button>
+        </div>
+
+    </EditForm>
+</div>
+
+@code {
+    string message = string.Empty;
+
+    AuthenticationState authState;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> _authState { get; set; }
+    
+    BookDetailsDto BookModel = new BookDetailsDto();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        authState = await _authState;
+
+        if (Id > 0)
+        {
+            var response = await _bookService.GetBook(Id);
+
+            if (response.Success)
+            {
+                BookModel = response.Data;
+            }
+        }
+    }
+
+    private void GoToEdit()
+    {
+        _navigationManager.NavigateTo($"/books/edit/{BookModel.Id}");
+    }
+
+    private void BackToList()
+    {
+        _navigationManager.NavigateTo("/books/");
+    }
+}

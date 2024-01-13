@@ -5,6 +5,9 @@ namespace BookStoreApp.API.Models.Book
     public class BookCreateDto
     {
         [Required]
+        public int AuthorId { get; set; }
+
+        [Required]
         [StringLength(50)]
         public string Title { get; set; }
 
@@ -20,6 +23,8 @@ namespace BookStoreApp.API.Models.Book
         public string Summary { get; set; }
 
         public string Image { get; set; }
+
+        public string OriginalImageName { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

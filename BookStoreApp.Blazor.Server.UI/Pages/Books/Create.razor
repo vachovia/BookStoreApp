@@ -1,0 +1,166 @@
+﻿@page "/books/create"
+@inject IBookService _bookService;
+@inject IAuthorService _authorService;
+@inject NavigationManager _navigationManager
+@attribute [Authorize(Roles = Roles.Administrator)]
+
+<h3>Create Book</h3><br/>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-danger">
+        <p>@message</p>
+    </div>
+}
+
+<div class="container">
+    <EditForm Model="BookModel" OnValidSubmit="HandleCreateBook">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label for="title">Title</label>
+            <InputText id="title" class="form-control" @bind-Value="BookModel.Title" />
+            <ValidationMessage For="@(() => BookModel.Title)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="isbn">ISBN</label>
+            <InputText id="isbn" class="form-control" @bind-Value="BookModel.Isbn" />
+            <ValidationMessage For="@(() => BookModel.Isbn)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="price">Price</label>
+            <InputNumber id="price" class="form-control" @bind-Value="BookModel.Price" />
+            <ValidationMessage For="@(() => BookModel.Price)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="year">Year</label>
+            <InputNumber id="year" class="form-control" @bind-Value="BookModel.Year" />
+            <ValidationMessage For="@(() => BookModel.Year)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="summary">Summary</label>
+            <InputTextArea id="sumamry" class="form-control" @bind-Value="BookModel.Summary" />
+            <ValidationMessage For="@(() => BookModel.Summary)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="author">Select Author</label>
+            <InputSelect id="author" class="form-select" @bind-Value="BookModel.AuthorId">
+                <option value="">-- Select Author --</option>
+                @foreach(var author in Authors)
+                {
+                    <option value="@author.Id">@author.FirstName @author.LastName</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => BookModel.AuthorId)" />
+        </div>
+        <br />
+        <div class="form-group">
+            <label for="photo">Book Cover Photo</label>
+            <div>
+                <InputFile id="photo" OnChange="HandleFileSelection" />
+                <img class="img-thumbnail" src="@imgUrl" width="100" height="100" alt="" />
+                <p class="text-danger">@UploadFileWarning</p>
+            </div>            
+        </div>
+        <br />
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">
+                <span class="oi oi-script"></span>&nbsp;Create Book
+            </button>
+            <button type="button" class="btn btn-secondary" @onclick="BackToList">
+                <span class="oi oi-arrow-circle-left"></span>&nbsp;Back To List
+            </button>
+        </div>
+
+    </EditForm>
+</div>
+
+@code {
+    string message = string.Empty;
+    string imgUrl = string.Empty;
+    string UploadFileWarning = string.Empty;
+    long maxFileSize = 1024 * 1024 * 5;
+    List<AuthorDto> Authors = new List<AuthorDto>();
+    BookCreateDto BookModel = new BookCreateDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await _authorService.GetAuthors();
+
+        if (response.Success)
+        {
+            Authors = response.Data;
+        }
+        else
+        {
+            message = "Unable to Get Authors List.";
+        }
+    }
+
+    private async Task HandleCreateBook()
+    {
+        try
+        {
+            var response = await _bookService.CreateBook(BookModel);
+
+            if (response.Success)
+            {
+                BackToList();
+            }
+
+            message = "Something Went Wrong, Please Try Again.";
+        }
+        catch (ApiException ex)
+        {
+            message = ex.Response;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+    }
+
+    private async Task HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        if (file != null)
+        {
+            if (file.Size > maxFileSize)
+            {
+                UploadFileWarning = "This file is too big for upload";
+                return;
+            }
+
+            var ext = System.IO.Path.GetExtension(file.Name);            
+
+            if (ext.ToLower().Contains("jpg") || ext.ToLower().Contains("jpeg") || ext.ToLower().Contains("png"))
+            {
+                var byteArray = new byte[file.Size];
+                await file.OpenReadStream().ReadAsync(byteArray);
+                // here we take Mime type to control if it is actually jpg => skipping check
+                string imageType = file.ContentType; 
+                string base64String = Convert.ToBase64String(byteArray);
+
+                BookModel.Image = base64String;
+                BookModel.OriginalImageName = file.Name;
+                imgUrl = $"data:{imageType}; base64, {base64String}";
+            }
+            else
+            {
+                UploadFileWarning = "Please select a valid image file (*.jpg | *.jpeg | *.png)";
+            }
+        }
+    }
+
+    private void BackToList()
+    {
+        _navigationManager.NavigateTo("/books/");
+    }
+}
