@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using BookStoreApp.API.Data;
+using BookStoreApp.API.Models;
 using BookStoreApp.API.Models.Book;
 using BookStoreApp.API.Repositories;
 using BookStoreApp.API.Static;
@@ -28,7 +29,26 @@ namespace BookStoreApp.API.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        [HttpGet] // GET: api/Books
+        [HttpGet] // GET: api/Books/?startindex=0&pagesize=15
+        public async Task<ActionResult<VirtualizeResponse<BookDto>>> GetBooks([FromQuery] QueryParameters queryParams)
+        {
+            _logger.LogInformation($"Request to {nameof(GetBooks)}");
+
+            try
+            {
+                var bookDtos = await _bookRepository.GetAllAsync<BookDto>(queryParams);
+
+                return Ok(bookDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(GetBooks)}");
+
+                return StatusCode(500, Messages.Error500Message);
+            }
+        }
+
+        [HttpGet("GetAll")] // GET: api/Books/GetAll
         public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks()
         {
             _logger.LogInformation($"Request to {nameof(GetBooks)}");
@@ -50,9 +70,9 @@ namespace BookStoreApp.API.Controllers
                 _logger.LogError(ex, $"Error performing GET in {nameof(GetBooks)}");
 
                 return StatusCode(500, Messages.Error500Message);
-            }            
+            }
         }
-        
+
         [HttpGet("{id}")] // GET: api/Books/5
         public async Task<ActionResult<BookDetailsDto>> GetBook(int id)
         {

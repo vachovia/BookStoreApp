@@ -1,4 +1,6 @@
-﻿namespace BookStoreApp.API.Repositories
+﻿using BookStoreApp.API.Models;
+
+namespace BookStoreApp.API.Repositories
 {
     public interface IGenericRepository<T> where T: class
     {
@@ -13,5 +15,7 @@
         Task DeleteAsync(int id);
 
         Task<bool> EntityExists(int id);
+
+        Task<VirtualizeResponse<TResult>> GetAllAsync<TResult>(QueryParameters queryParams) where TResult : class;
     }
 }

@@ -1,10 +1,12 @@
-﻿using BookStoreApp.Blazor.Server.UI.Services.Base;
+﻿using BookStoreApp.Blazor.Server.UI.Models;
+using BookStoreApp.Blazor.Server.UI.Services.Base;
 
 namespace BookStoreApp.Blazor.Server.UI.Services
 {
     public interface IBookService
     {
         Task<Response<List<BookDto>>> GetBooks();
+        Task<Response<BookDtoVirtualizeResponse>> GetBooks(QueryParameters queryParams);
         Task<Response<BookDetailsDto>> GetBook(int id);
         Task<Response<BookUpdateDto>> GetBookForUpdate(int id);
         Task<Response<int>> CreateBook(BookCreateDto book);

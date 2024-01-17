@@ -11,7 +11,7 @@ namespace BookStoreApp.API.Repositories
         private readonly IMapper _mapper;
         private readonly BookStoreDbContext _context;
 
-        public AuthorsRepository(BookStoreDbContext context, IMapper mapper) : base(context)
+        public AuthorsRepository(BookStoreDbContext context, IMapper mapper) : base(context, mapper)
         {
             _mapper = mapper;
             _context = context;

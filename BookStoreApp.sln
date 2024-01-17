@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStoreApp.API", "BookSto
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStoreApp.Blazor.Server.UI", "BookStoreApp.Blazor.Server.UI\BookStoreApp.Blazor.Server.UI.csproj", "{55102D38-6F2E-4145-8545-56826A24A76D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStoreApp.Blazor.WebAssembly.UI", "BookStoreApp.Blazor.WebAssembly.UI\BookStoreApp.Blazor.WebAssembly.UI.csproj", "{E6FD2752-E794-48D8-812D-D689ECAB9C58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStoreApp.Blazor.WebAssembly.UI", "BookStoreApp.Blazor.WebAssembly.UI\BookStoreApp.Blazor.WebAssembly.UI.csproj", "{E6FD2752-E794-48D8-812D-D689ECAB9C58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

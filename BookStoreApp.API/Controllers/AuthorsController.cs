@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using BookStoreApp.API.Data;
+using BookStoreApp.API.Models;
 using BookStoreApp.API.Models.Author;
 using BookStoreApp.API.Repositories;
 using BookStoreApp.API.Static;
@@ -26,7 +27,26 @@ namespace BookStoreApp.API.Controllers
             _authorsRepository = authorsRepository;
         }
 
-        [HttpGet] // GET: api/Authors
+        [HttpGet] // GET: api/Authors/?startindex=0&pagesize=15
+        public async Task<ActionResult<VirtualizeResponse<AuthorDto>>> GetAuthors([FromQuery] QueryParameters queryParams)
+        {
+            _logger.LogInformation($"Request to {nameof(GetAuthors)}");
+
+            try
+            {
+                var authorDtos = await _authorsRepository.GetAllAsync<AuthorDto>(queryParams);
+
+                return Ok(authorDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error performing GET in {nameof(GetAuthors)}");
+
+                return StatusCode(500, Messages.Error500Message);
+            }
+        }
+
+        [HttpGet("GetAll")] // GET: api/Authors/GetAll // nswag.init
         public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors()
         {
             _logger.LogInformation($"Request to {nameof(GetAuthors)}");
@@ -46,7 +66,7 @@ namespace BookStoreApp.API.Controllers
                 return StatusCode(500, Messages.Error500Message);
             }
         }
-        
+
         [HttpGet("{id}")] // GET: api/Authors/5
         public async Task<ActionResult<AuthorDetailsDto>> GetAuthor(int id)
         {

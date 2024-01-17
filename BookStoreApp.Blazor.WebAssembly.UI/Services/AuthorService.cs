@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Blazored.LocalStorage;
+using BookStoreApp.Blazor.WebAssembly.UI.Models;
 using BookStoreApp.Blazor.WebAssembly.UI.Services.Base;
 
 namespace BookStoreApp.Blazor.WebAssembly.UI.Services
@@ -22,16 +23,38 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services
             try
             {
                 await GetBearerToken();
-                var data = await _client.AuthorsAllAsync();
+                var data = await _client.GetAllAsync();
                 response = new Response<List<AuthorDto>>()
                 {
                     Data = data.ToList(),
                     Success = true
                 };
             }
-            catch(ApiException ex)
+            catch (ApiException ex)
             {
                 response = ConvertApiExceptions<List<AuthorDto>>(ex);
+            }
+
+            return response;
+        }
+
+        public async Task<Response<AuthorDtoVirtualizeResponse>> GetAuthors(QueryParameters queryParams)
+        {
+            Response<AuthorDtoVirtualizeResponse> response;
+
+            try
+            {
+                await GetBearerToken();
+                var data = await _client.AuthorsGETAsync(queryParams.StartIndex, queryParams.PageSize);
+                response = new Response<AuthorDtoVirtualizeResponse>()
+                {
+                    Data = data                    ,
+                    Success = true
+                };
+            }
+            catch(ApiException ex)
+            {
+                response = ConvertApiExceptions<AuthorDtoVirtualizeResponse>(ex);
             }
 
             return response;
@@ -78,7 +101,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services
             try
             {
                 await GetBearerToken();
-                var data = await _client.AuthorsGETAsync(id);
+                var data = await _client.AuthorsGET2Async(id);
                 response = new Response<AuthorDetailsDto>()
                 {
                     Data = data,
@@ -100,7 +123,7 @@ namespace BookStoreApp.Blazor.WebAssembly.UI.Services
             try
             {
                 await GetBearerToken();
-                var data = await _client.AuthorsGETAsync(id);
+                var data = await _client.AuthorsGET2Async(id);
                 response = new Response<AuthorUpdateDto>()
                 {
                     Data = _mapper.Map<AuthorUpdateDto>(data),

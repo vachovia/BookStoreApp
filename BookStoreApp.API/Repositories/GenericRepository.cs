@@ -1,14 +1,19 @@
-﻿using BookStoreApp.API.Data;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using BookStoreApp.API.Data;
+using BookStoreApp.API.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStoreApp.API.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
+        private readonly IMapper _mapper;
         private readonly BookStoreDbContext _context;
 
-        public GenericRepository(BookStoreDbContext context)
+        public GenericRepository(BookStoreDbContext context, IMapper mapper)
         {
+            _mapper = mapper;
             _context = context;
         }
 
@@ -57,6 +62,22 @@ namespace BookStoreApp.API.Repositories
             var entity = await GetAsync(id);
 
             return entity != null;
+        }
+
+        public async Task<VirtualizeResponse<TResult>> GetAllAsync<TResult>(QueryParameters queryParams) where TResult : class
+        {
+            var totalSize = await _context.Set<T>().CountAsync();
+
+            var items = await _context.Set<T>()
+                .Skip(queryParams.StartIndex)
+                .Take(queryParams.PageSize)
+                .ProjectTo<TResult>(
+                    _mapper.ConfigurationProvider
+                ).ToListAsync();
+
+            var response = new VirtualizeResponse<TResult> { Items = items, TotalSize = totalSize };
+
+            return response;
         }
     }
 }
